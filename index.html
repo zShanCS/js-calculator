@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        body {
+            background-color: wheat;
+        }
+        
+        button {
+            border: 1px solid rgb(184, 184, 184);
+            border-radius: 0;
+            height: 60px;
+            font-size: 1.5rem;
+            background-color: white;
+        }
+        
+        button:hover {
+            background-color: rgb(245, 244, 244);
+        }
+        
+        button:focus {
+            outline: none;
+        }
+        
+        button:active {
+            background-color: rgb(251, 43, 84);
+            color: white;
+        }
+        
+        .container {
+            margin: 0 auto;
+            padding-top: 2em;
+            /* width: 450px; */
+        }
+        
+        .screen {
+            box-sizing: border-box;
+            font-size: 2rem;
+            text-align: right;
+            color: white;
+            padding-right: 15px;
+            height: 65px;
+            width: 100%;
+            line-height: 2em;
+            background-color: black;
+            border-radius: 15px 15px 0px 0px;
+            overflow: hidden;
+            border: none;
+            outline: none;
+        }
+        
+        .keypad {
+            display: grid;
+            grid-template: repeat(7, 1fr) / repeat(4, 1fr);
+        }
+        
+        .zero {
+            border-radius: 0px 0px 0px 15px;
+        }
+        
+        .back {
+            grid-row: 4/5;
+            grid-column: auto/-1;
+            font-weight: bolder;
+        }
+        
+        .eq {
+            height: 100%;
+            grid-row: 5/-1;
+            grid-column: auto / -1;
+            border: none;
+            border-radius: 0px 0px 15px 0px;
+            background-color: rgb(251, 43, 84);
+        }
+        
+        .eq:hover {
+            background-color: rgb(255, 73, 109);
+        }
+        
+        @media (min-width:600px) {
+            body {
+                background-color: rgb(255, 248, 156);
+            }
+            .container {
+                width: 75%;
+            }
+        }
+        
+        @media (min-width:800px) {
+            body {
+                background-color: rgb(127, 198, 245);
+            }
+            .container {
+                width: 45%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div>
+            <input type="text" name="" id="myscreen" class="screen" readonly>
+        </div>
+
+        <div class="keypad">
+
+            <button id="MS">MS</button>
+            <button id="MR">MR</button>
+            <button id="MC">MC</button>
+            <button id="M+">M+</button>
+
+
+            <button id="pow2">x2</button>
+            <button id="sqrt">&Sqrt;</button>
+            <button id="inverse">1/x</button>
+            <button id="absolute">&PlusMinus;</button>
+
+            <button class="op" id="plus">+</button>
+            <button class="op" id="minus">-</button>
+            <button class="op" id="multiply">*</button>
+            <button class="op" id="divide">/</button>
+
+            <button class="num">7</button>
+            <button class="num">8</button>
+            <button class="num">9</button>
+            <button class="num">4</button>
+            <button class="num">5</button>
+            <button class="num">6</button>
+            <button class="num">1</button>
+            <button class="num">2</button>
+            <button class="num">3</button>
+            <button class="num zero">0</button>
+
+            <button id="point">.</button>
+
+            <button id="ac">AC</button>
+
+            <button class="eq" id="equal">=</button>
+            <button class="back" id="back">&xlArr;</button>
+        </div>
+    </div>
+    <script>
+        //global variables
+        var result, displayed, dot, storedVal, errorOccured;
+        displayed = false;
+        errorOccured = false;
+        dot = false;
+        var myscreen = document.getElementById('myscreen');
+        var point = document.getElementById('point');
+        var ac = document.getElementById('ac');
+        var equal = document.getElementById('equal');
+        var back = document.getElementById('back');
+
+        var ms = document.getElementById('MS');
+        var mc = document.getElementById('MC');
+        var mr = document.getElementById('MR');
+        var mp = document.getElementById('M+');
+
+        var square = document.getElementById('pow2');
+        var sqrt = document.getElementById('sqrt');
+        var inverse = document.getElementById('inverse');
+        var absolute = document.getElementById('absolute');
+
+        var operation = document.getElementsByClassName('op');
+        var num = document.getElementsByClassName('num');
+
+        //myscreen set to zero initially
+        myscreen.value = '0';
+
+        //numbers event  
+
+        for (var i = 0; i < num.length; i++) {
+            num[i].addEventListener('click', (e) => numPress(e.target.innerText));
+        }
+
+        function numPress(e) {
+            console.log(e);
+            if (myscreen.value == '0' || displayed || errorOccured || myscreen.value == 'Infinity' || myscreen.value == 'NaN') {
+                myscreen.value = '';
+                displayed = false;
+                errorOccured = false;
+            }
+            myscreen.value += e;
+        }
+        //operation button event
+        for (var i = 0; i < operation.length; i++) {
+            operation[i].addEventListener('click', (e) => operationPress(e.target.innerText));
+        }
+
+        function operationPress(e) {
+            if (myscreen.value == '0' || errorOccured || myscreen.value == 'Infinity') {
+                myscreen.value = '';
+                errorOccured = false;
+
+            }
+            dot = false;
+            displayed = false;
+            errorOccured = false;
+            myscreen.value += e;
+        }
+        //point button 
+        point.addEventListener('click', () => pointPress());
+
+        function pointPress() {
+            if (myscreen.value.includes('.')) {
+                console.log('point present');
+                if (!dot) {
+                    myscreen.value += '.0';
+                    dot = true;
+                } else {
+                    console.log('point already there');
+                }
+            } else {
+                console.log('point not present');
+                myscreen.value += '.0';
+                dot = true;
+                displayed = false;
+            }
+        }
+        //equal sign operation
+        equal.addEventListener('click', equalPress);
+
+        function equalPress() {
+            var expression = myscreen.value;
+            showme(expression);
+        }
+        //AC button events
+        ac.addEventListener('click', (e) => {
+            myscreen.value = '0';
+        });
+        //back button
+        back.addEventListener('click', backPress);
+
+        function backPress() {
+
+            if (errorOccured || myscreen.value == 'Infinity') {
+                myscreen.value = '0';
+            }
+            if (myscreen.value[myscreen.value.length - 1] == '.') {
+                dot = false;
+            }
+            myscreen.value = myscreen.value.slice(0, myscreen.value.length - 1);
+        }
+        //square button events
+        square.addEventListener('click', (e) => {
+            showme(myscreen.value ** 2);
+        });
+        //sqrt button events
+        sqrt.addEventListener('click', (e) => {
+            showme(myscreen.value ** 0.5);
+        });
+        //absolute button events
+        absolute.addEventListener('click', (e) => {
+            let i = myscreen.value;
+            if (i == '0') {
+                greenLight();
+                return;
+            }
+            showme(i);
+            i = myscreen.value;
+            if (i > 0) {
+                myscreen.value = i * -1;
+            } else if (i < 0) {
+                myscreen.value = i * -1;
+            }
+
+        });
+        //inverse button events
+        inverse.addEventListener('click', (e) => {
+            var p = myscreen.value;
+            showme(1 / p);
+        });
+
+        //MS button
+        ms.addEventListener('click', (e) => {
+            var prev = myscreen.value;
+            if (isNaN(prev)) {
+                console.log('its an expression');
+                showErr(new Error(), 'Cant Save Expression');
+            } else {
+                storedVal = parseFloat(myscreen.value);
+                showme(storedVal);
+            }
+
+        });
+        //MR button
+        mr.addEventListener('click', (e) => {
+            if (isNaN(storedVal)) {
+                showErr(new Error(), '0')
+            } else {
+                myscreen.value = storedVal;
+                greenLight();
+            }
+
+        });
+        //MC button
+        mc.addEventListener('click', (e) => {
+            storedVal = 0;
+            showme(myscreen.value);
+        });
+        //M+ button
+        mp.addEventListener('click', (e) => {
+            storedVal += parseFloat(myscreen.value);
+            showme(myscreen.value);
+        });
+        //printing the output on screen
+        let showme = (ex, msg = 'Syntax Error') => {
+            console.log(ex);
+            var err = false;
+            try {
+                result = eval(ex);
+                if (isNaN(result)) throw (new Error('NaN'));
+            } catch (error) {
+                err = true;
+                console.error(error.message);
+                showErr(error, msg);
+            }
+            if (!err) {
+                errorOccured = false;
+                displayed = true;
+                myscreen.value = result;
+                greenLight();
+
+            }
+        }
+
+        function greenLight() {
+            myscreen.animate([
+                // keyframes
+                {
+                    backgroundColor: 'green'
+                }, {
+                    backgroundColor: 'black'
+                }
+            ], {
+                // timing options
+                duration: 1000
+            });
+        }
+
+        function showErr(error, msg) {
+
+            errorOccured = true;
+            if (error.message == 'NaN') {
+                myscreen.value = 'NaN';
+            } else {
+                myscreen.value = msg;
+            }
+            myscreen.animate([
+                // keyframes
+                {
+                    backgroundColor: 'red'
+                }, {
+                    backgroundColor: 'black'
+                }
+            ], {
+                // timing options
+                duration: 1000
+            });
+        }
+
+        function isNum(num) {
+            return !isNaN(num);
+        }
+        //keyboard events
+        document.addEventListener('keyup', (e) => {
+            console.log(e.key);
+            if (isNum(e.key)) {
+                numPress(e.key);
+            } else if (e.key == '.') {
+                pointPress();
+            } else if (e.key === 'Enter') {
+                equalPress();
+            } else if (e.key === '+' || e.key === '-' || e.key === '*' || e.key === '/') {
+                operationPress(e.key);
+            } else if (e.key === 'Backspace') {
+                backPress();
+            } else if (e.shiftKey && e.key === '1') {
+                alert(e);
+            } else {
+                console.log('none of the above');
+            }
+        })
+    </script>
+</body>
+<!--Syotos-->
+
+</html>
